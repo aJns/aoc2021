@@ -12,16 +12,29 @@ main = do
     let bitCount = length $ head intLists
     let starter = replicate bitCount 0
 
-    let lineCount = length cLines
+    let lineCount = length intLists
 
-    let (gammaArr, epsilonArr) = buildEpGamma lineCount starter intLists
+    let oxygenArr = buildOxygen 0 starter intLists
+    let co2Arr = buildCo2 0 starter intLists
 
-    let oxygen = filterWith 0 gammaArr intLists
-    let co2 = binToInt $ reverse $ filterWith 0 epsilonArr intLists
+    let oxygen = binToInt $ reverse $ oxygenArr
+    let co2 = binToInt $ reverse $ co2Arr
 
-    -- TODO: gammat ja epsilonit tarvii laskea aina uudestaan kun listasta
-    -- poistuu rivejä
-    putStrLn $ show $ oxygen
+    putStrLn $ show $ oxygen * co2
+
+
+buildOxygen :: Int -> [Int] -> [[Int]] -> [Int]
+buildOxygen _ _ (a:[]) = a
+buildOxygen index starter numbers = buildOxygen (index + 1) starter newNumbers
+    where newNumbers = filter (\x -> (x !! index) == (filterArr !! index)) numbers
+          (filterArr, _) = buildEpGamma (length numbers) starter numbers
+
+
+buildCo2 :: Int -> [Int] -> [[Int]] -> [Int]
+buildCo2 _ _ (a:[]) = a
+buildCo2 index starter numbers = buildCo2 (index + 1) starter newNumbers
+    where newNumbers = filter (\x -> (x !! index) == (filterArr !! index)) numbers
+          (_, filterArr) = buildEpGamma (length numbers) starter numbers
 
 
 buildEpGamma :: Int -> [Int] -> [[Int]] -> ([Int], [Int])
@@ -47,11 +60,11 @@ toGamma countInt numInt = if (num / count) >= 0.5 then 1
 
 -- Least common
 toEpsilon :: Int -> Int -> Int
-toEpsilon countInt numInt = if (num / count) > 0.5 then 0
-                                                   else 1
-                                                       where
-                                                           num = fromIntegral numInt
-                                                           count = fromIntegral countInt
+toEpsilon countInt numInt = if (num / count) >= 0.5 then 0
+                                                    else 1
+                                                        where
+                                                            num = fromIntegral numInt
+                                                            count = fromIntegral countInt
 
 
 -- copied from StackOverflow because I am lazy
