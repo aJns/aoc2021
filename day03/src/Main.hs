@@ -12,20 +12,24 @@ main = do
     let bitCount = length $ head intLists
     let starter = replicate bitCount 0
 
-    -- eli tästä
-    let sumBitArr::[Int] = foldl (zipWith (+)) starter intLists
     let lineCount = length cLines
 
-    let gammaArr = map (toGamma lineCount) sumBitArr
-    let epsilonArr = map (toEpsilon lineCount) sumBitArr
-    -- tähän
+    let (gammaArr, epsilonArr) = buildEpGamma lineCount starter intLists
 
     let oxygen = filterWith 0 gammaArr intLists
     let co2 = binToInt $ reverse $ filterWith 0 epsilonArr intLists
 
     -- TODO: gammat ja epsilonit tarvii laskea aina uudestaan kun listasta
     -- poistuu rivejä
-    putStrLn $ show $ oxygen * co2
+    putStrLn $ show $ oxygen
+
+
+buildEpGamma :: Int -> [Int] -> [[Int]] -> ([Int], [Int])
+buildEpGamma lineCount starter intLists = (gammaArr, epsilonArr)
+    where 
+        gammaArr = map (toGamma lineCount) sumBitArr
+        epsilonArr = map (toEpsilon lineCount) sumBitArr
+        sumBitArr::[Int] = foldl (zipWith (+)) starter intLists
 
 
 filterWith :: Int -> [Int] -> [[Int]] -> [Int]
