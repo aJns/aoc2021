@@ -12,25 +12,34 @@ main = do
     let bitCount = length $ head intLists
     let starter = replicate bitCount 0
 
+    -- eli tästä
     let sumBitArr::[Int] = foldl (zipWith (+)) starter intLists
     let lineCount = length cLines
 
     let gammaArr = map (toGamma lineCount) sumBitArr
     let epsilonArr = map (toEpsilon lineCount) sumBitArr
+    -- tähän
 
-    let gamma = binToInt $ reverse gammaArr
-    let epsilon = binToInt $ reverse epsilonArr
+    let oxygen = filterWith 0 gammaArr intLists
+    let co2 = binToInt $ reverse $ filterWith 0 epsilonArr intLists
 
-    putStrLn $ show $ gamma * epsilon
+    -- TODO: gammat ja epsilonit tarvii laskea aina uudestaan kun listasta
+    -- poistuu rivejä
+    putStrLn $ show $ oxygen * co2
 
+
+filterWith :: Int -> [Int] -> [[Int]] -> [Int]
+filterWith _ _ (a:[]) = a
+filterWith index filterArr numbers = filterWith (index + 1) (tail filterArr) newNumbers
+    where newNumbers = filter (\x -> (x !! index) == (head filterArr)) numbers
 
 -- Most common
 toGamma :: Int -> Int -> Int
-toGamma countInt numInt = if (num / count) > 0.5 then 1
-                                                 else 0
-                                                     where
-                                                         num = fromIntegral numInt
-                                                         count = fromIntegral countInt
+toGamma countInt numInt = if (num / count) >= 0.5 then 1
+                                                  else 0
+                                                      where
+                                                          num = fromIntegral numInt
+                                                          count = fromIntegral countInt
 
 -- Least common
 toEpsilon :: Int -> Int -> Int
