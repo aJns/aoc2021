@@ -1,4 +1,7 @@
-module Main where
+import System.Environment
 
-main :: IO ()
-main = putStrLn "Hello, Haskell!"
+main = do
+    args <- getArgs
+    let filename = head args
+    content <- readFile filename
+    let cLines = lines content
