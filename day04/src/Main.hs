@@ -25,36 +25,36 @@ getLines filename = do
     content <- readFile filename
     return $ lines content
 
--- params: drawn, toDraw, cards
--- returns: winning card, drawn cards
--- We actually want a list of drawn and the winning board
 playBingo :: [Int] -> [Int] -> [Card] -> (Card, [Int])
-playBingo drawn toDraw cards = 
-    if gotBingo then (winningCard, newDrawn)
-                else playBingo (newDrawn) (tail toDraw) cards
-                    where
-                        newDrawn = lastDrawn:drawn
-                        (winningCard, gotBingo) = checkCardsForWin newDrawn cards
-                        lastDrawn = head toDraw
+playBingo drawn toDraw [lastCard] =
+  if null winningCards then playBingo newDrawn (tail toDraw) [lastCard]
+                       else (lastCard, newDrawn)
+                         where
+                           newDrawn = lastDrawn:drawn
+                           winningCards = checkCardsForWins newDrawn [lastCard] []
+                           lastDrawn = head toDraw
+playBingo drawn toDraw cards = playBingo newDrawn (tail toDraw) cardsWithoutWin
+  where
+    newDrawn = lastDrawn:drawn
+    winningCards = checkCardsForWins newDrawn cards []
+    lastDrawn = head toDraw
+    cardsWithoutWin = filter (\x -> not (elem x winningCards)) cards
 
 
-checkCardsForWin :: [Int] -> [Card] -> (Card, Bool)
-checkCardsForWin [] _ = ([], False)
-checkCardsForWin _ [] = ([], False)
-checkCardsForWin drawn cards =
-    if gotBingo then (card, True)
-                else checkCardsForWin drawn $ tail cards
-                    where gotBingo = checkCardForWin drawn $ card
+checkCardsForWins :: [Int] -> [Card] -> [Card] -> [Card]
+checkCardsForWins _ [] winningCards = winningCards
+checkCardsForWins drawn cards winningCards =
+    if gotBingo then checkCardsForWins drawn restCards (card:winningCards)
+                else checkCardsForWins drawn restCards winningCards
+                    where gotBingo = checkCardForWin drawn card
                           card = head cards
+                          restCards = tail cards
 
 
 checkCardForWin :: [Int] -> Card -> Bool
-checkCardForWin drawn card =
-    if rowBingo then True
-                else if colBingo then True
-                else False
-                    where rowBingo = checkRowsForWin drawn card
-                          colBingo = checkRowsForWin drawn $ transpose card
+checkCardForWin drawn card = rowBingo || colBingo
+  where rowBingo = checkRowsForWin drawn card
+        colBingo = checkRowsForWin drawn $ transpose card
 
 
 checkRowsForWin :: [Int] -> Card -> Bool
