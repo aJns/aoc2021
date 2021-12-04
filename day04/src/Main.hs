@@ -13,9 +13,11 @@ main = do
     let draws = parseDraws $ head $ head inputs
     let cards = map parseCard $ tail inputs
 
-    let (winningLine, lastDrawn) = playBingo [] draws cards
+    let (winningCard, drawn) = playBingo [] draws cards
+    let unmarked = filter (\x -> not (elem x drawn)) $ concat winningCard
+    let lastDrawn = head drawn
 
-    putStrLn $ show $ (*) lastDrawn $ foldl (+) 0 winningLine
+    putStrLn $ show $ (*) lastDrawn $ foldl (+) 0 unmarked
 
 
 getLines :: String -> IO [String]
@@ -24,39 +26,41 @@ getLines filename = do
     return $ lines content
 
 -- params: drawn, toDraw, cards
--- returns: winning row/col, last drawn
-playBingo :: [Int] -> [Int] -> [Card] -> ([Int], Int)
+-- returns: winning card, drawn cards
+-- We actually want a list of drawn and the winning board
+playBingo :: [Int] -> [Int] -> [Card] -> (Card, [Int])
 playBingo drawn toDraw cards = 
-    if gotBingo then (winningLine, lastDrawn)
+    if gotBingo then (winningCard, newDrawn)
                 else playBingo (newDrawn) (tail toDraw) cards
                     where
-                        newDrawn = [lastDrawn] ++ drawn
-                        (winningLine, gotBingo) = checkCardsForWin newDrawn cards
+                        newDrawn = lastDrawn:drawn
+                        (winningCard, gotBingo) = checkCardsForWin newDrawn cards
                         lastDrawn = head toDraw
 
 
-checkCardsForWin :: [Int] -> [Card] -> ([Int], Bool)
+checkCardsForWin :: [Int] -> [Card] -> (Card, Bool)
 checkCardsForWin [] _ = ([], False)
 checkCardsForWin _ [] = ([], False)
 checkCardsForWin drawn cards =
-    if gotBingo then (winningLine, True)
+    if gotBingo then (card, True)
                 else checkCardsForWin drawn $ tail cards
-                    where (winningLine, gotBingo) = checkCardForWin drawn $ head cards
+                    where gotBingo = checkCardForWin drawn $ card
+                          card = head cards
 
 
-checkCardForWin :: [Int] -> Card -> ([Int], Bool)
+checkCardForWin :: [Int] -> Card -> Bool
 checkCardForWin drawn card =
-    if rowBingo then (rowWin, True)
-                else if colBingo then (colWin, True)
-                else ([], False)
-                    where (rowWin, rowBingo) = checkRowsForWin drawn card
-                          (colWin, colBingo) = checkRowsForWin drawn $ transpose card
+    if rowBingo then True
+                else if colBingo then True
+                else False
+                    where rowBingo = checkRowsForWin drawn card
+                          colBingo = checkRowsForWin drawn $ transpose card
 
 
-checkRowsForWin :: [Int] -> Card -> ([Int], Bool)
-checkRowsForWin drawn [] = ([], False)
+checkRowsForWin :: [Int] -> Card -> Bool
+checkRowsForWin drawn [] = False
 checkRowsForWin drawn card =
-    if gotBingo then (row, True)
+    if gotBingo then True
                 else checkRowsForWin drawn $ tail card
                     where gotBingo = checkRowForWin drawn row
                           row = head card
