@@ -13,10 +13,9 @@ main = do
     let draws = parseDraws $ head $ head inputs
     let cards = map parseCard $ tail inputs
 
-    putStrLn $ show $ cards
-    -- let (winningLine, lastDrawn) = playBingo [] draws cards
+    let (winningLine, lastDrawn) = playBingo [] draws cards
 
-    -- putStrLn $ show $ (*) lastDrawn $ foldl (+) 0 winningLine
+    putStrLn $ show $ (*) lastDrawn $ foldl (+) 0 winningLine
 
 
 getLines :: String -> IO [String]
@@ -91,7 +90,7 @@ parseCard strList = map parseRow strList
 
 
 parseRow :: String -> [Int]
-parseRow str = map read $ strSplitAll " " str
+parseRow str = map read $ filter (\x -> not (strEq x "")) $ strSplitAll " " str
 
 
 tailOrEmpty :: [a] -> [a]
