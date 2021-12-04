@@ -7,16 +7,22 @@ type Card = [[Int]]
 main = do
     args <- getArgs
     let filename = head args
-    content <- readFile filename
-    let cLines = lines content
-    let inputs = divideInput [] cLines
+    cLines <- getLines filename
+    let inputs = divideInput [] $ reverse cLines
 
     let draws = parseDraws $ head $ head inputs
     let cards = map parseCard $ tail inputs
 
-    let (winningLine, lastDrawn) = playBingo [] draws cards
+    putStrLn $ show $ cards
+    -- let (winningLine, lastDrawn) = playBingo [] draws cards
 
-    putStrLn $ show $ (*) lastDrawn $ foldl (+) 0 winningLine
+    -- putStrLn $ show $ (*) lastDrawn $ foldl (+) 0 winningLine
+
+
+getLines :: String -> IO [String]
+getLines filename = do
+    content <- readFile filename
+    return $ lines content
 
 -- params: drawn, toDraw, cards
 -- returns: winning row/col, last drawn
@@ -69,10 +75,11 @@ checkRowForWin drawn row =
 divideInput :: [[String]] -> [String] -> [[String]]
 divideInput a [] = a
 divideInput divided cLines
-  | strEq current "" = divideInput ([] ++ divided) $ tail cLines
-  | otherwise = divideInput ([newHead] ++ (tail divided)) $ tail cLines
+  | strEq current "" = divideInput ([]:divided) $ tail cLines
+  | otherwise = divideInput (newHead:(tailOrEmpty divided)) $ tail cLines
   where current = head cLines
-        newHead = [current] ++ (head divided)
+        newHead = if null divided  then [current]
+                                   else current:(head divided)
 
 
 parseDraws :: String -> [Int]
@@ -85,3 +92,8 @@ parseCard strList = map parseRow strList
 
 parseRow :: String -> [Int]
 parseRow str = map read $ strSplitAll " " str
+
+
+tailOrEmpty :: [a] -> [a]
+tailOrEmpty [] = []
+tailOrEmpty a = tail a
