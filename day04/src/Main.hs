@@ -1,4 +1,6 @@
 import System.Environment
+import Data.Strings
+import Data.List
 
 type Card = [[Int]]
 
@@ -7,14 +9,14 @@ main = do
     let filename = head args
     content <- readFile filename
     let cLines = lines content
-    let inputs = divideInput cLines
+    let inputs = divideInput [] cLines
 
-    let draws = parseDraws $ head inputs
-    let cards = map parseCards $ tail inputs
+    let draws = parseDraws $ head $ head inputs
+    let cards = map parseCard $ tail inputs
 
     let (winningLine, lastDrawn) = playBingo [] draws cards
 
-    putStrLn $ show $ lastDrawn * $ foldl (+) winningLine
+    putStrLn $ show $ (*) lastDrawn $ foldl (+) 0 winningLine
 
 -- params: drawn, toDraw, cards
 -- returns: winning row/col, last drawn
@@ -24,32 +26,32 @@ playBingo drawn toDraw cards =
                 else playBingo (newDrawn) (tail toDraw) cards
                     where
                         newDrawn = [lastDrawn] ++ drawn
-                        (gotBingo, winningLine) = checkCardsForWin newDrawn cards
+                        (winningLine, gotBingo) = checkCardsForWin newDrawn cards
                         lastDrawn = head toDraw
 
 
 checkCardsForWin :: [Int] -> [Card] -> ([Int], Bool)
-checkCardsForWin [] _ = (False, [])
-checkCardsForWin _ [] = (False, [])
+checkCardsForWin [] _ = ([], False)
+checkCardsForWin _ [] = ([], False)
 checkCardsForWin drawn cards =
     if gotBingo then (winningLine, True)
                 else checkCardsForWin drawn $ tail cards
-                    where (winningLine, gotBingo) = checkCardForWin drawn $ head card
+                    where (winningLine, gotBingo) = checkCardForWin drawn $ head cards
 
 
 checkCardForWin :: [Int] -> Card -> ([Int], Bool)
 checkCardForWin drawn card =
     if rowBingo then (rowWin, True)
-                else if colBingo (colWin, True)
+                else if colBingo then (colWin, True)
                 else ([], False)
                     where (rowWin, rowBingo) = checkRowsForWin drawn card
-                    where (colWin, colBingo) = checkRowsForWin drawn $ transpose card
+                          (colWin, colBingo) = checkRowsForWin drawn $ transpose card
 
 
 checkRowsForWin :: [Int] -> Card -> ([Int], Bool)
 checkRowsForWin drawn [] = ([], False)
 checkRowsForWin drawn card =
-    if gotBingo then (winLine, True)
+    if gotBingo then (row, True)
                 else checkRowsForWin drawn $ tail card
                     where gotBingo = checkRowForWin drawn row
                           row = head card
@@ -64,10 +66,22 @@ checkRowForWin drawn row =
                     where wasDrawn = (head row) `elem` drawn
 
 
-divideInput :: [String] -> [[String]]
+divideInput :: [[String]] -> [String] -> [[String]]
+divideInput a [] = a
+divideInput divided cLines
+  | strEq current "" = divideInput ([] ++ divided) $ tail cLines
+  | otherwise = divideInput ([newHead] ++ (tail divided)) $ tail cLines
+  where current = head cLines
+        newHead = [current] ++ (head divided)
 
 
 parseDraws :: String -> [Int]
+parseDraws str = map read $ strSplitAll "," str
 
 
-parseCard :: [String] -> [Card]
+parseCard :: [String] -> Card
+parseCard strList = map parseRow strList
+
+
+parseRow :: String -> [Int]
+parseRow str = map read $ strSplitAll " " str
