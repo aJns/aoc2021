@@ -13,9 +13,9 @@ main = do
     let cLines = lines content
 
     let startEndPairs = map (parsePair . splitLine) cLines
-    let filtered = filter (\((x1,y1),(x2,y2)) -> (x1 == x2) || (y1 == y2)) startEndPairs
+    -- let filtered = filter (\((x1,y1),(x2,y2)) -> (x1 == x2) || (y1 == y2)) startEndPairs
 
-    let coordLines = concat $ map fillInLine filtered
+    let coordLines = concat $ map fillInLine startEndPairs
     let coordMap = constructMap coordLines empty
 
     let values = elems coordMap
@@ -48,9 +48,29 @@ fillInLine :: CoordPair -> [Coord]
 fillInLine ((x1,y1),(x2,y2))
   | y1 == y2 = row
   | x1 == x2 = col
+  | otherwise = diag
   where row 
           | x2 >= x1 = map (\x -> (x, y1)) [x1..x2]
           | x2 < x1 = map (\x -> (x, y1)) [x2..x1]
         col 
           | y2 >= y1 = map (\y -> (x1, y)) [y1..y2]
           | y2 < y1 = map (\y -> (x1, y)) [y2..y1]
+        diag
+          | y2 >= y1 && x2 >= x1 = zip [x1..x2]           [y1..y2]
+          | y2 >= y1 && x2 < x1  = zip (reverse [x2..x1]) [y1..y2]
+          | y2 < y1 && x2 >= x1  = zip [x1..x2]           (reverse [y2..y1])
+          | y2 < y1 && x2 < x1   = zip (reverse [x2..x1]) (reverse [y2..y1])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
