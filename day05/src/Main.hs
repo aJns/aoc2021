@@ -1,5 +1,6 @@
 import System.Environment
 import Data.Strings
+import Data.Map (Map, empty, insertWith, (!), elems)
 
 type Coord = (Int, Int)
 type CoordPair = (Coord, Coord)
@@ -11,9 +12,22 @@ main = do
     content <- readFile filename
     let cLines = lines content
 
-    -- let startEndPairs = map parsePair cLines
+    let startEndPairs = map (parsePair . splitLine) cLines
+    let filtered = filter (\((x1,y1),(x2,y2)) -> (x1 == x2) || (y1 == y2)) startEndPairs
 
-    putStrLn $ show $ map (parsePair . splitLine) cLines
+    let coordLines = concat $ map fillInLine filtered
+    let coordMap = constructMap coordLines empty
+
+    let values = elems coordMap
+    let atLeast2 = length $ filter (\x -> x >= 2) $ values
+
+    putStrLn $ show $ atLeast2
+
+
+constructMap :: [Coord] -> Map Coord Int -> Map Coord Int
+constructMap [] coordMap = coordMap
+constructMap coords coordMap = constructMap (tail coords) newMap
+    where newMap = insertWith (+) (head coords) 1 coordMap
 
 
 splitLine :: String -> [[String]] 
@@ -28,3 +42,15 @@ parsePair [[sx1,sy1],[sx2,sy2]] = ((x1,y1),(x2,y2))
           y1 = read sy1
           x2 = read sx2
           y2 = read sy2
+
+
+fillInLine :: CoordPair -> [Coord]
+fillInLine ((x1,y1),(x2,y2))
+  | y1 == y2 = row
+  | x1 == x2 = col
+  where row 
+          | x2 >= x1 = map (\x -> (x, y1)) [x1..x2]
+          | x2 < x1 = map (\x -> (x, y1)) [x2..x1]
+        col 
+          | y2 >= y1 = map (\y -> (x1, y)) [y1..y2]
+          | y2 < y1 = map (\y -> (x1, y)) [y2..y1]
