@@ -9,18 +9,17 @@ main = do
 
     let horPos = map read $ strSplitAll "," $ head cLines
 
-    putStrLn $ show $ calcFuel (findTurningPoint 0 horPos) horPos
+    -- putStrLn $ show $ (findTurningPoint 0 0 horPos)
+    putStrLn $ show $ calcFuel (findTurningPoint 0 0 horPos) horPos
 
 -- counter, list, counter
-findTurningPoint :: Int -> [Int] -> Int
-findTurningPoint a [] = a 
-findTurningPoint counter horPos
-  | prevFuel < currFuel = counter
-  | otherwise = findTurningPoint (counter+1) horPos
-  where prevFuel = calcFuel prev horPos
-        currFuel = calcFuel curr horPos
-        prev = horPos !! (counter)
-        curr = horPos !! (counter + 1)
+findTurningPoint :: Int -> Int -> [Int] -> Int
+findTurningPoint counter minPos horPos
+  | counter >= length horPos = minPos
+  | minFuel > currFuel = findTurningPoint (counter+1) counter horPos
+  | otherwise = findTurningPoint (counter+1) minPos horPos
+  where minFuel = calcFuel minPos horPos
+        currFuel = calcFuel counter horPos
 
 
 calcFuel :: Int -> [Int] -> Int
