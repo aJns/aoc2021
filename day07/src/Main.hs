@@ -7,9 +7,10 @@ main = do
     content <- readFile filename
     let cLines = lines content
 
-    let horPos = map read $ strSplitAll "," $ head cLines
+    let horPos = map (read::String->Int) $ strSplitAll "," $ head cLines
 
     -- putStrLn $ show $ (findTurningPoint 0 0 horPos)
+    -- putStrLn $ show $ calcFuel 5 horPos
     putStrLn $ show $ calcFuel (findTurningPoint 0 0 horPos) horPos
 
 -- counter, list, counter
@@ -23,4 +24,13 @@ findTurningPoint counter minPos horPos
 
 
 calcFuel :: Int -> [Int] -> Int
-calcFuel index horPos = foldl (+) 0 $ map (\x -> abs(x - index)) horPos
+calcFuel index horPos = foldl (+) 0 $ map (calcFuelForIndex index) horPos
+
+
+calcFuelForIndex :: Int -> Int -> Int
+calcFuelForIndex fromIndex index = calcIncreasing $ abs(index - fromIndex)
+
+
+calcIncreasing :: Int -> Int
+calcIncreasing 0 = 0
+calcIncreasing a = a + calcIncreasing (a-1)
