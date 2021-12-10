@@ -1,4 +1,5 @@
 import System.Environment
+import Data.List
 
 main = do
     args <- getArgs
@@ -6,9 +7,13 @@ main = do
     content <- readFile filename
     let cLines = lines content
 
-    let scores = map (charToVal . checkParens []) cLines
+    -- let scores = map (charToVal . checkParens []) cLines
+    let completes = map (\(_,y) -> y) $ filter (\(x,_) -> x) $ map (checkParens []) cLines
+    let scores = map (calcComplScore 0) completes
+    let sorted = sort scores
+    let middleIndex = div ((length sorted)-1) 2
 
-    putStrLn $ show $ foldl (+) 0 scores
+    putStrLn $ show $ sorted !! middleIndex
 
 
 charToVal :: Char -> Int
@@ -20,15 +25,33 @@ charToVal char
   | otherwise = 0
 
 
-checkParens :: String -> String -> Char
-checkParens stack [] = ' '
+calcComplScore :: Int -> String -> Int
+calcComplScore score [] = score
+calcComplScore score (a:as)
+  | a == ')' = calcComplScore ((score*5)+1) as
+  | a == ']' = calcComplScore ((score*5)+2) as
+  | a == '}' = calcComplScore ((score*5)+3) as
+  | a == '>' = calcComplScore ((score*5)+4) as
+  | otherwise = 0
+
+
+checkParens :: String -> String -> (Bool, String)
+checkParens stack [] = (True, stack)
 checkParens stack (x:xs)
-  | elem x "([{<" = checkParens (x:stack) xs
-  | elem x ")]}>" = if hasMatch (head stack) x
+  | elem x "([{<" = checkParens ((getCloser x):stack) xs
+  | elem x ")]}>" = if x == (head stack)
                        then checkParens (tail stack) xs
-                       else x
+                       else (False, [x])
   | otherwise = checkParens stack xs
 
+
+getCloser :: Char -> Char
+getCloser opener
+  | opener == '(' = ')'
+  | opener == '[' = ']'
+  | opener == '{' = '}'
+  | opener == '<' = '>'
+  | otherwise = ' '
 
 hasMatch :: Char -> Char -> Bool
 hasMatch opener closer
