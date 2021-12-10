@@ -18,10 +18,47 @@ main = do
 
     let lowpoints = findLowPoints (0,0) (rows, cols) heightmap []
 
-    putStrLn $ show $ foldl (+) 0 $ map (\x -> x+1) lowpoints
+    let basins = map (\x -> findBasin ([x], []) heightmap) lowpoints
+    let lengths = map (length . nub) basins
+    let big3 = take 3 $ reverse $ sort lengths
+
+    putStrLn $ show $ foldl (*) 1 big3
 
 
-findLowPoints :: Coord -> Coord -> Heightmap -> [Int] -> [Int]
+findBasin :: ([Coord], [Coord]) -> Heightmap -> [Coord]
+findBasin ([], basin) _ = basin
+findBasin (toCheck, basin) heightmap = findBasin (newCheck, newBasin) heightmap
+  where newCheck = concat [(tail toCheck), filteredNeighborsToCheck]
+        newBasin = newPart:basin
+        newPart = head toCheck
+        filteredNeighborsToCheck = filter (\x -> notElem x basin) neighborsToCheck
+        neighborsToCheck = filter (isPartOfBasin newPartVal heightmap) neighbors
+        neighbors = findNeighborCoord newPart (rows, cols)
+        rows = length heightmap
+        cols = length $ head heightmap
+        newPartVal = (heightmap !! i) !! j
+        i = fst newPart
+        j = snd newPart
+
+
+
+isPartOfBasin :: Int -> Heightmap -> Coord -> Bool
+isPartOfBasin val heightmap neighbor = isPart
+  where isPart = neighVal > val && neighVal < 9 
+        neighVal = (heightmap !! i) !! j
+        i = fst neighbor
+        j = snd neighbor
+
+
+findNeighborCoord :: Coord -> Coord -> [Coord]
+findNeighborCoord (i,j) (rows,cols) = concat [hor,ver]
+    where horN = filter (\x -> x < cols && x >= 0) [j-1,j+1]
+          verN = filter (\x -> x < rows && x >= 0) [i-1,i+1]
+          hor = [(i,y) | y <- horN]
+          ver = [(x,j) | x <- verN]
+
+
+findLowPoints :: Coord -> Coord -> Heightmap -> [Coord] -> [Coord]
 findLowPoints (i,j) (rows,cols) heightmap lowpoints
   | j < cols = findLowPoints (i,j+1) (rows,cols) heightmap newLowpoints
   | i < rows = findLowPoints (i+1,0) (rows,cols) heightmap lowpoints
@@ -29,7 +66,7 @@ findLowPoints (i,j) (rows,cols) heightmap lowpoints
   where newLowpoints = if foundLowpoint then lowpoint:lowpoints
                                         else lowpoints
                                             where foundLowpoint = isLowpoint (i,j) (rows,cols) heightmap
-                                                  lowpoint = (heightmap !! i) !! j
+                                                  lowpoint = (i,j)
 
 
 isLowpoint :: Coord -> Coord -> Heightmap -> Bool
