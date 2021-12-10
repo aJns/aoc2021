@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -o nounset
+
 printf -v daydir "day%02d" "$1"
 srcdir="$daydir/src"
 
