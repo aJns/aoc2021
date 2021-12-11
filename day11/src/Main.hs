@@ -20,7 +20,7 @@ main = do
     let cols = length $ head octopiStart
     let octoKeys = map (\i -> [(i,j) | j <- [0..cols-1]]) [0..rows-1]
 
-    putStrLn $ show $ runSteps 100 (octoMap, 0)
+    putStrLn $ show $ runSteps 0 (octoMap, 0)
 
 
 mapToList :: [[Coord]] -> OctoMap -> [[Int]]
@@ -38,16 +38,15 @@ buildMap octoMap (i,j) octoList
 
 
 runSteps :: Int -> (OctoMap, Int) -> Int
-runSteps 0 (_, flashCounter) = flashCounter
-runSteps counter (octoMap, flashCounter) = runSteps (counter-1) $ runStep (octoMap, flashCounter)
+runSteps step (_, 100) = step
+runSteps step (octoMap, flashCounter) = runSteps (step+1) $ runStep octoMap
 
 
-runStep :: (OctoMap, Int) -> (OctoMap, Int)
-runStep (octoMap, counter) = (nextMap, newCounter)
+runStep :: OctoMap -> (OctoMap, Int)
+runStep octoMap = (nextMap, flashCount)
     where incrMap = Map.map (+ 1) octoMap
           flashedMap = flashAll (keys incrMap) incrMap
           nextMap = Map.map (max 0) flashedMap
-          newCounter = counter + flashCount
           flashes = filter (\x -> x < 0) $ elems flashedMap
           flashCount = length flashes
 
