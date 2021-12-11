@@ -41,10 +41,12 @@ runSteps :: Int -> OctoMap -> OctoMap
 runSteps 0 octoMap = octoMap
 runSteps counter octoMap = runSteps (counter-1) $ runStep octoMap
 
+
 runStep :: OctoMap -> OctoMap
 runStep octoMap = nextMap
     where incrMap = Map.map (+ 1) octoMap
-          nextMap = flashAll (keys incrMap) incrMap
+          flashedMap = flashAll (keys incrMap) incrMap
+          nextMap = Map.map (max 0) flashedMap
 
 
 flashAll :: [Coord] -> OctoMap -> OctoMap
@@ -60,9 +62,14 @@ flash octoMap coord
   | otherwise = ([], octoMap)
   where flashedMap = incrementNeighbors neighbors negMap
         negMap = insert coord (-9999) octoMap -- asetetaan arvo negatiiviseksi = on flashatty
-        neighbors = filter (\x -> member x octoMap) [(x,y) | x <- [i-1,i+1], y <- [j-1, j+1]]
-        i = fst coord
-        j = snd coord
+        neighbors = findNeighbors octoMap coord
+
+
+findNeighbors :: OctoMap -> Coord -> [Coord]
+findNeighbors octoMap (i,j) = onlyN
+  where neighbors = [(x,y) | x <- [i-1..i+1], y <- [j-1..j+1]]
+        filtN = filter (\x -> member x octoMap) neighbors
+        onlyN = filter (\x -> not ((i,j) == x)) filtN
 
 
 incrementNeighbors :: [Coord] -> OctoMap -> OctoMap
