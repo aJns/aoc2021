@@ -1,6 +1,6 @@
 import System.Environment
 import Data.Char
-import Data.Map (Map, empty, insert, (!), keys, insert, insertWith, member)
+import Data.Map (Map, empty, insert, (!), keys, insert, insertWith, member, elems)
 import qualified Data.Map as Map
 
 type Coord = (Int, Int)
@@ -20,7 +20,7 @@ main = do
     let cols = length $ head octopiStart
     let octoKeys = map (\i -> [(i,j) | j <- [0..cols-1]]) [0..rows-1]
 
-    putStrLn $ show $ mapToList octoKeys $ runSteps 2 octoMap
+    putStrLn $ show $ runSteps 100 (octoMap, 0)
 
 
 mapToList :: [[Coord]] -> OctoMap -> [[Int]]
@@ -37,16 +37,19 @@ buildMap octoMap (i,j) octoList
         octoVal = (octoList !! i) !! j
 
 
-runSteps :: Int -> OctoMap -> OctoMap
-runSteps 0 octoMap = octoMap
-runSteps counter octoMap = runSteps (counter-1) $ runStep octoMap
+runSteps :: Int -> (OctoMap, Int) -> Int
+runSteps 0 (_, flashCounter) = flashCounter
+runSteps counter (octoMap, flashCounter) = runSteps (counter-1) $ runStep (octoMap, flashCounter)
 
 
-runStep :: OctoMap -> OctoMap
-runStep octoMap = nextMap
+runStep :: (OctoMap, Int) -> (OctoMap, Int)
+runStep (octoMap, counter) = (nextMap, newCounter)
     where incrMap = Map.map (+ 1) octoMap
           flashedMap = flashAll (keys incrMap) incrMap
           nextMap = Map.map (max 0) flashedMap
+          newCounter = counter + flashCount
+          flashes = filter (\x -> x < 0) $ elems flashedMap
+          flashCount = length flashes
 
 
 flashAll :: [Coord] -> OctoMap -> OctoMap
