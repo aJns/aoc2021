@@ -22,22 +22,24 @@ main = do
 buildGraph :: Graph -> [String] -> Graph
 buildGraph graph [] = graph
 buildGraph graph (x:xs) = buildGraph newGraph xs
-    where newGraph = insertWith (++) node [neighbor] graph
+    where newGraph = insertWith (++) node [neighbor] oneWay
+          oneWay = insertWith (++) neighbor [node] graph
           (node, neighbor) = strSplit "-" x
 
 
 exploreNeighbors :: Graph -> [String] -> String -> [[String]]
 exploreNeighbors graph path node 
-  | not (canExplore path node) = []
-  | not (member node graph) = [newPath]
   | node == "end" = [newPath]
-  | null neighbors = [newPath]
+  | not (canExplore path node) = []
+  | not (member node graph) = []
+  | null neighbors = []
   | otherwise = concat $ map (exploreNeighbors graph newPath) neighbors
   where newPath = node:path
         neighbors = graph ! node
 
 
 canExplore :: [String] -> String -> Bool
-canExplore path node = occur <= allowed
-  where occur = length $ filter (node==) path
-        allowed = if isLower (head node) then 1 else 2
+canExplore path node = if isLower (head node)
+                          then occur < 1
+                          else True
+                              where occur = length $ filter (node==) path
