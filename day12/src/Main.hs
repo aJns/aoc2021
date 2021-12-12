@@ -2,7 +2,7 @@ import System.Environment
 import Data.Strings
 import Data.Char
 
-import Data.Map (Map, insertWith, empty, delete, (!), insert, member)
+import Data.Map (Map, insertWith, empty, delete, (!), insert, member, elems)
 import qualified Data.Map as Map
 
 -- Node, neighbors
@@ -39,7 +39,35 @@ exploreNeighbors graph path node
 
 
 canExplore :: [String] -> String -> Bool
-canExplore path node = if isLower (head node)
-                          then occur < 1
-                          else True
-                              where occur = length $ filter (node==) path
+canExplore path node
+  | node == "start" = occur < 1
+  | isUpper (head node) = True
+  | otherwise = if not $ hasDoubleLower path
+                   then occur < 2
+                   else occur < 1
+  where occur = length $ filter (node==) path
+
+
+hasDoubleLower :: [String] -> Bool
+hasDoubleLower path = hasDoubleLower' empty path
+
+
+hasDoubleLower' :: Map String Int -> [String] -> Bool
+hasDoubleLower' occurMap [] = hasDouble
+    where hasDouble = (length filtList) > 0
+          filtList = filter (\x -> x > 1) (elems occurMap) 
+hasDoubleLower' occurMap (x:xs) = hasDoubleLower' newMap xs
+    where newMap = if isLower (head x) then insertWith (+) x 1 occurMap
+                                       else occurMap
+
+
+
+
+
+
+
+
+
+
+
+
