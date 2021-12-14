@@ -9,16 +9,23 @@ type PairMap = Map (Char,Char) Char
 main = do
     args <- getArgs
     let filename = head args
+    let steps = (read::String->Int) $ args !! 1
     content <- readFile filename
     let cLines = lines content
 
     let template = head cLines
     let pairLines = drop 2 cLines
     let pairMap = parseToMap Map.empty pairLines
-    let inserted = insertForSteps pairMap 10 template
+    let inserted = insertForSteps pairMap steps template
     let hist = buildHistogram Map.empty inserted
     let histStart = head $ Map.elems hist
     let (min,max) = findMinMax (histStart, histStart) $ Map.elems hist
+
+
+    -- TODO: Possible solutions to part 2
+    -- * MergeSort, divide into chunks until we have two chars, then replace
+    -- * Cache solutions, ie if step 1->2 gives us asd=>asdasd, then add
+    --   asd,asdasd to the map
 
     putStrLn $ show $ max-min
 
