@@ -13,9 +13,9 @@ main = do
     let cLines = lines content
     let dots = getDots Set.empty cLines
     let folds = reverse $ getFolds [] cLines
-    let folded = foldAll [head folds] dots
+    let folded = foldAll folds dots
 
-    putStrLn $ show $ length folded
+    putStrLn $ intercalate "\n" $ visualizeDots (50,10) folded
 
 
 foldAll :: [String] -> Set Dot -> Set Dot
