@@ -20,20 +20,27 @@ main = do
     let cLines = lines content
     let risks = map (map digitToInt) cLines
 
+    let incrementer = [0, 1] --, 2, 3, 4]
+
+    let colRisks = map (incrementRow incrementer) risks
+    let bigRisks = transpose $ map (incrementRow incrementer) $ transpose colRisks
+
     let rows = length risks
     let cols = length $ head risks
     let keys = [[(i,j) | j <- [0..cols]] | i <- [0..rows]]
     let endNode = (rows-1, cols-1)
 
-    -- Kokeile Dijkstran algoritmia
-    -- https://fi.wikipedia.org/wiki/Dijkstran_algoritmi#Pseudokoodi
-
     let riskMap = Map.fromList $ concat $ map (\(k,v) -> zip k v) $ zip keys risks
     let graph = buildGraph Map.empty riskMap (Map.keys riskMap)
     let costMap = dijkstra graph ((0,0), endNode)
     let path = reconstructPath graph costMap endNode []
+    let pathCost = foldl (+) 0 $ map (\x -> riskMap ! x) $ drop 1 path
 
-    putStrLn $ show $ foldl (+) 0 $ map (\x -> riskMap ! x) $ drop 1 path
+    putStrLn $ show $ bigRisks
+
+
+incrementRow :: [Int] -> [Int] -> [Int]
+incrementRow cols row = concat $ map (\x -> map (+ x) row) cols
 
 
 reconstructPath :: Graph -> DistanceMap -> Node-> [Node] -> [Node]
