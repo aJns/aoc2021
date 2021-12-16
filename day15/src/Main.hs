@@ -33,7 +33,7 @@ main = do
     let costMap = dijkstra graph (0,0)
     let path = reconstructPath graph costMap endNode []
 
-    putStrLn $ show $ path
+    putStrLn $ show $ foldl (+) 0 $ map (\x -> riskMap ! x) $ drop 1 path
 
 
 reconstructPath :: Graph -> DistanceMap -> Node-> [Node] -> [Node]
