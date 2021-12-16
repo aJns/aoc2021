@@ -39,8 +39,16 @@ main = do
     putStrLn $ show $ bigRisks
 
 
+
+incrementWithWrap :: Int -> Int
+incrementWithWrap a
+  | b > 9 = 1
+  | otherwise = b
+  where b = a + 1
+
+
 incrementRow :: [Int] -> [Int] -> [Int]
-incrementRow cols row = concat $ map (\x -> map (+ x) row) cols
+incrementRow cols row = concat $ map (\x -> map incrementWithWrap row) cols
 
 
 reconstructPath :: Graph -> DistanceMap -> Node-> [Node] -> [Node]
