@@ -30,8 +30,21 @@ main = do
 
     let riskMap = Map.fromList $ concat $ map (\(k,v) -> zip k v) $ zip keys risks
     let graph = buildGraph Map.empty riskMap (Map.keys riskMap)
+    let costMap = dijkstra graph (0,0)
+    let path = reconstructPath graph costMap endNode []
 
-    putStrLn $ show $ dijkstra graph (0,0)
+    putStrLn $ show $ path
+
+
+reconstructPath :: Graph -> DistanceMap -> Node-> [Node] -> [Node]
+reconstructPath graph distances node path
+  | (distances ! node) == 0 = newPath
+  | otherwise = reconstructPath graph distances newNode newPath
+  where newPath = node:path
+        newNode = head sorted
+        sorted = sortBy (\x y -> compare (distances ! x) (distances ! y)) neighbors
+        neighbors = map (\(x,y) -> x) $ graph ! node
+
 
 
 buildGraph :: Graph -> RiskMap -> [Node] -> Graph
