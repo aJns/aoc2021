@@ -30,7 +30,7 @@ main = do
 
     let riskMap = Map.fromList $ concat $ map (\(k,v) -> zip k v) $ zip keys risks
     let graph = buildGraph Map.empty riskMap (Map.keys riskMap)
-    let costMap = dijkstra graph (0,0)
+    let costMap = dijkstra graph ((0,0), endNode)
     let path = reconstructPath graph costMap endNode []
 
     putStrLn $ show $ foldl (+) 0 $ map (\x -> riskMap ! x) $ drop 1 path
@@ -62,16 +62,18 @@ buildGraph graph riskMap (node:nodes) =
 
 
 
-dijkstra :: Graph -> Node -> DistanceMap
-dijkstra graph startNode = dijkstraLoop graph distances openSet
+dijkstra :: Graph -> (Node, Node) -> DistanceMap
+dijkstra graph (startNode, endNode) = dijkstraLoop graph endNode distances openSet
   where distances = Map.insert startNode 0 $ Map.fromList maxDistances
         maxDistances = map (\(x,y) -> ((x,y), (x*9)+(y*9))) $ Map.keys graph
         openSet = Map.keys graph
 
 
-dijkstraLoop :: Graph -> DistanceMap -> [Node] -> DistanceMap
-dijkstraLoop graph distances [] = distances
-dijkstraLoop graph distances openSet = dijkstraLoop graph newDist newOpen
+dijkstraLoop :: Graph -> Node -> DistanceMap -> [Node] -> DistanceMap
+dijkstraLoop _ _ distances [] = distances
+dijkstraLoop graph endNode distances openSet
+  | node == endNode = newDist
+  | otherwise = dijkstraLoop graph endNode newDist newOpen
   where (node, newOpen) = extractMin distances openSet
         newDist = Map.unionWith (min) neighborDistMap distances
         neighborDist = map (\(neighbor, dist) -> (neighbor, (distances ! node) + dist)) $ graph ! node
